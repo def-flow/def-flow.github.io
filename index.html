@@ -4,10 +4,33 @@
   <meta charset="utf-8">
   <meta name="description" content="Project description">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DefPointFlow</title>
+  <title>DefFlow</title>
 
   <link rel="stylesheet" href="./static/css/bulma.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
+
+  <!-- ADDED: styles for the interactive flow viewer (Nerfies look: 10px rounded media box, thin grey border) -->
+  <style>
+    #flow-viewer { margin: 0 auto; }
+    #flow-viewer .fv-canvas { width: 100%; min-height: 200px; border: 1px solid #bbb; border-radius: 10px; background: #d9d9d9; line-height: 0; overflow: hidden; }
+    #flow-viewer .fv-canvas canvas { display: block; width: 100%; height: auto; cursor: grab; border-radius: 10px; }
+    #flow-viewer .fv-bar { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem; }
+    #flow-viewer .fv-time { flex: 1; }
+    #flow-viewer .fv-play { width: 4.75rem; }
+    #flow-viewer .fv-row { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; margin-top: 0.6rem; font-size: 0.95rem; text-align: center; }
+    #flow-viewer .fv-modes label { margin: 0 0.75rem; cursor: pointer; }
+    #flow-viewer .fv-label { color: #7a7a7a; }
+    #flow-viewer .fv-hint { color: #7a7a7a; font-size: 0.85rem; margin-top: 0.5rem; text-align: center; }
+  </style>
+
+  <!-- ADDED: three.js from a CDN + the viewer script (nothing to install or build) -->
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+  </script>
+  <script type="module" src="./static/js/flowviewer.js"></script>
 
   <script defer src="./static/js/index.js"></script>
 </head>
@@ -16,8 +39,8 @@
 <section class="hero">
   <div class="hero-body">
     <div class="container is-max-desktop has-text-centered">
-      <h1 class="title is-1 publication-title">DefPointFlow: Goal-Conditioned Deformable Object Manipulation using 3D Point Flows</h1>
-      <p class="subtitle">Project subtitle or short description</p>
+      <h1 class="title is-1 publication-title">DefFlow: Goal-Conditioned Deformable Object Manipulation using 3D Point Flows</h1>
+      <p class="subtitle"><strong>TL;DR:</strong> DefFlow learns to manipulate deformable objects by predicting joint robot-scene point flows.</p>
 
       <div class="is-size-5 publication-authors">
         <span class="author-block">Anonymous Submission</span>
@@ -32,12 +55,45 @@
   </div>
 </section>
 
+<!-- ADDED: interactive 3D flow viewer -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div id="flow-viewer">
+      <div class="fv-canvas"></div>
+      <div class="fv-bar">
+        <button class="button is-small is-rounded is-dark fv-play" type="button">play</button>
+        <input class="fv-time" type="range" min="0" max="144" step="1" value="0" aria-label="Time">
+      </div>
+      <div class="fv-row">
+        <div class="fv-modes">
+          <label class="radio"><input type="radio" name="fv-mode" value="lines" checked> flow lines</label>
+          <label class="radio"><input type="radio" name="fv-mode" value="particles"> predicted particles (+8, +16, +24, +32 steps)</label>
+          <label class="radio"><input type="radio" name="fv-mode" value="none"> none</label>
+        </div>
+        <div class="fv-label"></div>
+      </div>
+      <p class="fv-hint">Drag to rotate, scroll to zoom, right-drag to pan. Green points are the goal shape.</p>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="container is-max-desktop">
     <h2 class="title is-3">Abstract</h2>
     <div class="content">
       <p>
-        Describe your research problem, approach, and key findings here.
+        Manipulating deformable objects toward desired 3D configurations is a fundamental capability for robots
+        operating in unstructured physical environments. However, as the range of possible initial and target
+        configurations grows, goal-conditioned deformable manipulation requires a robot to infer increasingly diverse
+        manipulation behaviors in addition to precise continuous actions. We introduce DefFlow, a framework for
+        goal-conditioned manipulation of deformable objects toward a broad range of 3D configurations. DefFlow learns
+        from demonstrations by jointly predicting the goal-conditioned 3D point flow of the robot and deformable
+        scene. We show that this formulation better captures both the manipulation decisions, such as when and where
+        to grasp, release, or re-grasp, and the precise continuous motions required for goal reaching, rather than
+        predicting only the robot flow. Across rope, granular-media, and cloth manipulation settings with diverse
+        initial and target configurations, DefFlow substantially outperforms goal-conditioned action-prediction and
+        robot-flow-only baselines on success rates and goal-distance metrics. We further demonstrate deployment of
+        our framework on a real robot using real point-cloud observations and unseen goal configurations.
       </p>
     </div>
   </div>
