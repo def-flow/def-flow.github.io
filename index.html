@@ -38,13 +38,15 @@
   <section class="wrap">
     <div class="fig fig-panel">
       <div class="teaser-grid" id="teaser">
-        <div class="tz-stage pred">
-          <div class="chip">DefFlow predictions</div>
-          <div class="tz-drag">drag to rotate</div>
+        <div class="media">
+          <div class="tz-stage pred">
+            <button class="chip tz-predbtn" type="button" aria-pressed="true">DefFlow predictions &#10003;</button>
+            <div class="tz-drag">drag to rotate</div>
+          </div>
         </div>
         <div class="side">
           <p class="fig-caption">From the current scene and a goal shape, DefFlow predicts how the points of the robot and
-            the rope will move.</p>
+            the <span class="tz-noun">rope</span> will move.</p>
           <hr class="fig-rule">
           <div class="ctl">
             <span class="ctl-label">Play</span>
@@ -60,16 +62,20 @@
             <span class="ctl-label">View</span>
             <input class="slider tz-az" type="range" min="0" max="12" step="1" value="6" aria-label="Camera angle">
           </div>
-          <div class="ctl tz-preds-wrap">
-            <span class="ctl-label">Preds</span>
-            <label class="switch"><input type="checkbox" class="tz-preds" checked><span class="track"></span>show predictions</label>
-          </div>
           <hr class="fig-rule">
           <div class="legend">
             <span><i class="flow"></i>predicted flow</span>
-            <span><i style="background:#f58fd8"></i>predicted rope points</span>
+            <span><i style="background:#f58fd8"></i>predicted <span class="tz-pts">rope</span> points</span>
             <span><i style="background:#d43cf0"></i>predicted gripper points</span>
             <span><i style="background:#92ff8b"></i>goal</span>
+          </div>
+          <div class="tasks" role="group" aria-label="Task">
+            <button type="button" class="task" data-task="rope" data-noun="rope" data-pts="rope" data-dir="./static/videos/teaser/" aria-pressed="true">
+              <img src="./static/img/task_rope.jpg" alt="" width="240" height="240"><span>Rope</span></button>
+            <button type="button" class="task" data-task="granular" data-noun="granular pile" data-pts="pile" data-dir="./static/videos/granular/" aria-pressed="false">
+              <img src="./static/img/task_granular.jpg" alt="" width="240" height="240"><span>Granular</span></button>
+            <button type="button" class="task" data-task="cloth" data-noun="cloth" data-pts="cloth" data-dir="./static/videos/cloth/" aria-pressed="false">
+              <img src="./static/img/task_cloth.jpg" alt="" width="240" height="240"><span>Cloth</span></button>
           </div>
         </div>
       </div>
