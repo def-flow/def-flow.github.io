@@ -6,12 +6,13 @@
   <title>DefFlow</title>
   <meta name="description" content="DefFlow: goal-conditioned deformable object manipulation using 3D point flows.">
   <script>
-    // light / dark: a choice made with the toggle is kept for this browser; otherwise the system setting is used
     try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
   <link rel="stylesheet" href="./static/css/site.css">
   <script defer src="./static/js/teaser.js"></script>
   <script defer src="./static/js/theme.js"></script>
+  <script defer src="./static/js/clips.js"></script>
+  <script defer src="./static/js/arch.js"></script>
 </head>
 <body>
 
@@ -23,7 +24,7 @@
   </button>
   <h1>Def<span>Flow</span></h1>
   <p class="sub">Goal-Conditioned Deformable Object Manipulation using 3D Point Flows</p>
-  <p class="tldr">DefFlow learns to manipulate deformable objects by predicting joint robot-scene point flows.</p>
+  <p class="tldr">DefFlow learns to manipulate deformable objects by predicting goal-conditioned joint robot-scene point flows.</p>
   <nav class="links">
     <a class="btn" href="#" aria-disabled="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
@@ -36,40 +37,11 @@
 
 <main>
   <section class="wrap">
-    <div class="fig fig-panel">
-      <div class="teaser-grid" id="teaser">
-        <div class="media">
-          <div class="tz-stage pred">
-            <button class="chip tz-predbtn" type="button" aria-pressed="true">DefFlow predictions &#10003;</button>
-            <div class="tz-drag">drag to rotate</div>
-          </div>
-        </div>
-        <div class="side">
-          <p class="fig-caption">From the current scene and a goal shape, DefFlow predicts how the points of the robot and
-            the <span class="tz-noun">rope</span> will move.</p>
-          <hr class="fig-rule">
-          <div class="ctl">
-            <span class="ctl-label">Play</span>
-            <div class="play-row">
-              <button class="play tz-play" type="button" aria-label="Pause">
-                <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
-                <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M7 4.5v15l13-7.5z"/></svg>
-              </button>
-              <input class="slider tz-time" type="range" min="0" max="1000" step="1" value="0" aria-label="Time">
-            </div>
-          </div>
-          <div class="ctl">
-            <span class="ctl-label">View</span>
-            <input class="slider tz-az" type="range" min="0" max="12" step="1" value="6" aria-label="Camera angle">
-          </div>
-          <hr class="fig-rule">
-          <div class="legend">
-            <span><i class="flow"></i>predicted flow</span>
-            <span><i style="background:#f58fd8"></i>predicted <span class="tz-pts">rope</span> points</span>
-            <span><i style="background:#d43cf0"></i>predicted gripper points</span>
-            <span><i style="background:#92ff8b"></i>goal</span>
-          </div>
-          <div class="tasks" role="group" aria-label="Task">
+    <div class="fig tz-card" id="teaser">
+      <p class="tz-title">DefFlow predicts the goal-conditioned coupled motion of the robot and the deformable object,
+        across diverse start and goal shapes.</p>
+      <div class="tz-main">
+        <div class="tasks" role="group" aria-label="Task">
             <button type="button" class="task" data-task="rope" data-noun="rope" data-pts="rope" data-dir="./static/videos/teaser/" aria-pressed="true">
               <img src="./static/img/task_rope.jpg" alt="" width="240" height="240"><span>Rope</span></button>
             <button type="button" class="task" data-task="granular" data-noun="granular pile" data-pts="pile" data-dir="./static/videos/granular/" aria-pressed="false">
@@ -77,28 +49,496 @@
             <button type="button" class="task" data-task="cloth" data-noun="cloth" data-pts="cloth" data-dir="./static/videos/cloth/" aria-pressed="false">
               <img src="./static/img/task_cloth.jpg" alt="" width="240" height="240"><span>Cloth</span></button>
           </div>
+        <div class="tz-stage pred">
+            <button class="chip tz-predbtn" type="button" aria-pressed="true">DefFlow predictions &#10003;</button>
+            <div class="tz-drag"><span class="tz-hand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10"/><path d="M12 9.5a1.5 1.5 0 0 1 3 0V11"/><path d="M15 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-4.6-2.2L4 15.6a1.5 1.5 0 0 1 2.3-1.9L9 16.5V11"/></svg></span><span class="tz-arr" aria-hidden="true">&#8596;</span>drag to rotate</div>
+          </div>
+        <div class="tz-legend">
+          <span><i class="flow"></i>predicted flow</span>
+          <span><i style="background:#f58fd8"></i>predicted <span class="tz-pts">rope</span> points</span>
+          <span><i style="background:#d43cf0"></i>predicted gripper points</span>
+          <span><i style="background:#92ff8b"></i>goal</span>
+        </div>
+      </div>
+      <div class="tz-strip">
+        <div class="tz-cell view-row"><span class="ctl-label">view</span><input class="slider tz-az" type="range" min="0" max="12" step="1" value="6" aria-label="Camera angle"></div>
+        <div class="tz-cell play-row">
+          <button class="play tz-play" type="button" aria-label="Pause">
+                <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+                <svg class="i-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M7 4.5v15l13-7.5z"/></svg>
+              </button>
+          <input class="slider tz-time" type="range" min="0" max="1000" step="1" value="0" aria-label="Time">
         </div>
       </div>
     </div>
   </section>
 
-  <section class="block wrap">
-    <div class="narrow prose">
-      <h2>Abstract</h2>
-      <p>
-        Manipulating deformable objects toward desired 3D configurations is a fundamental capability for robots
-        operating in unstructured physical environments. However, as the range of possible initial and target
-        configurations grows, goal-conditioned deformable manipulation requires a robot to infer increasingly diverse
-        manipulation behaviors in addition to precise continuous actions. We introduce DefFlow, a framework for
-        goal-conditioned manipulation of deformable objects toward a broad range of 3D configurations. DefFlow learns
-        from demonstrations by jointly predicting the goal-conditioned 3D point flow of the robot and deformable
-        scene. We show that this formulation better captures both the manipulation decisions, such as when and where
-        to grasp, release, or re-grasp, and the precise continuous motions required for goal reaching, rather than
-        predicting only the robot flow. Across rope, granular-media, and cloth manipulation settings with diverse
-        initial and target configurations, DefFlow substantially outperforms goal-conditioned action-prediction and
-        robot-flow-only baselines on success rates and goal-distance metrics. We further demonstrate deployment of
-        our framework on a real robot using real point-cloud observations and unseen goal configurations.
-      </p>
+  <section class="wrap abs-wrap">
+    <details class="abstract">
+      <summary>
+        <span class="abs-label">Abstract</span>
+        <span class="abs-peek">Manipulating deformable objects toward desired 3D configurations is a fundamental capability for robots operating in unstructured physical environments.</span>
+        <span class="abs-more"><span class="m-open">read</span><span class="m-close">close</span><i></i></span>
+      </summary>
+      <p>Manipulating deformable objects toward desired 3D configurations is a fundamental capability for robots operating in unstructured physical environments. However, as the range of possible initial and target configurations grows, goal-conditioned deformable manipulation requires a robot to infer increasingly diverse manipulation behaviors in addition to precise continuous actions. We introduce DefFlow, a framework for goal-conditioned manipulation of deformable objects toward a broad range of 3D configurations. DefFlow learns from demonstrations by jointly predicting the goal-conditioned 3D point flow of the robot and deformable object. We show that this formulation better captures both the manipulation decisions, such as when and where to grasp, release, or regrasp, and the precise continuous motions required for goal reaching, rather than predicting only the robot flow. Across rope, granular-media, and cloth manipulation settings with diverse initial and target configurations, DefFlow substantially outperforms goal-conditioned action-prediction and robot-flow-only baselines on success rates and goal-distance metrics. We further demonstrate deployment of our framework on a real robot using real point-cloud observations and unseen goal configurations.</p>
+    </details>
+  </section>
+
+  <section class="block wrap" id="motivation">
+    <h2 class="sec-big">Manipulating deformable objects toward diverse 3D configurations remains challenging</h2>
+    <div class="blk side">
+      <div class="txt"><h3><span class="r-num">01</span><span class="h-big">Diverse 3D configurations</span></h3><p>Unlike rigid objects, whose configurations can be described by 6-DoF poses, deformable objects can undergo a wide range of 3D shape changes governed by complex dynamics.</p></div>
+      <div class="fig fig-panel">
+        <div class="tiles c3">
+          <div class="t"><video class="clip" src="./static/videos/motivation/rope.mp4" muted loop playsinline preload="none"></video><span class="chip ">rope</span></div>
+          <div class="t"><video class="clip" src="./static/videos/motivation/granular.mp4" muted loop playsinline preload="none"></video><span class="chip ">granular</span></div>
+          <div class="t"><video class="clip" src="./static/videos/motivation/cloth.mp4" muted loop playsinline preload="none"></video><span class="chip ">cloth</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="blk side flip even">
+      <div class="txt"><h3><span class="r-num">02</span><span class="h-big">Coupled dynamics</span></h3><p>Reaching a specific goal requires modeling the coupled dynamics of the robot and deformable object, capturing how their configurations evolve together toward the target.</p></div>
+      <div class="fig fig-panel tight">
+        <div class="t"><video class="clip" src="./static/videos/motivation/coupled.mp4" muted loop playsinline preload="none"></video><span class="chip ">robot + rope</span></div>
+      </div>
+    </div>
+    <div class="blk stack">
+      <div class="txt"><h3><span class="r-num">03</span><span class="h-big">Different behaviors</span></h3><p>The behaviors required can be completely different for different goals or starting configurations.</p></div>
+      <div class="fig fig-panel">
+        <div class="tiles beh beh-head">
+          <span>goal 1 <svg class="arw" viewBox="0 0 34 12" aria-hidden="true"><path d="M1 6H31M25 1l6 5-6 5"/></svg> behavior 1</span><span>goal 2 <svg class="arw" viewBox="0 0 34 12" aria-hidden="true"><path d="M1 6H31M25 1l6 5-6 5"/></svg> behavior 2</span><span></span><span>goal x <svg class="arw" viewBox="0 0 34 12" aria-hidden="true"><path d="M1 6H31M25 1l6 5-6 5"/></svg> behavior x</span>
+        </div>
+        <div class="tiles beh">
+          <div class="t"><video class="clip" src="./static/videos/motivation/drag.mp4" muted loop playsinline preload="none"></video><span class="chip ">grasp + drag</span></div>
+          <div class="t"><video class="clip" src="./static/videos/motivation/regrasp.mp4" muted loop playsinline preload="none"></video><span class="chip ">drop + re-grasp</span></div>
+          <div class="beh-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="t"><video class="clip" src="./static/videos/motivation/swish.mp4" muted loop playsinline preload="none"></video><span class="chip ">lift + swish</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="method">
+    <h2>Method</h2><p class="sec-lead">DefFlow uses <b>goal-conditioned joint robot-deformable object 3D point flow</b> as the underlying representation learning objective, and <b>repurposes that as the robot policy</b> using the robot flows.</p>
+    <div class="blk stack">
+      <div class="fig fig-panel">
+      <div class="flow" id="arch">
+        <div class="fl-fig">
+<svg class="arch" viewBox="-6 -6 1412 1428" role="img" aria-label="DefFlow architecture. Scene points and goal points are serialized and encoded into tokens, type embeddings are added, a PTv3 backbone gives per-point features, and an MLP outputs the scene flow.">
+<defs><linearGradient id="ag-ptv3" x1="0" x2="1"><stop offset="0" stop-color="#c8faf0"/><stop offset="0.5" stop-color="#e2eef0"/><stop offset="1" stop-color="#f9e0ea"/></linearGradient><linearGradient id="ag-tok" x1="0" x2="1"><stop offset="0" stop-color="#8fa8d8"/><stop offset="1" stop-color="#3dbd3d"/></linearGradient></defs>
+<g class="grp" data-k="in" tabindex="0">
+<rect x="39" y="1190" width="641" height="194" rx="16" fill="#ccd6ec"/>
+<rect class="hl" x="19" y="1210" width="641" height="195" rx="16" fill="#e3e9f5" stroke="#fff" stroke-width="4"/>
+<circle cx="349" cy="1237" r="3.2" fill="#686868"/>
+<circle cx="341" cy="1249" r="3.2" fill="#686868"/>
+<circle cx="357" cy="1249" r="3.2" fill="#686868"/>
+<circle cx="329" cy="1261" r="3.2" fill="#686868"/>
+<circle cx="341" cy="1261" r="3.2" fill="#686868"/>
+<circle cx="357" cy="1261" r="3.2" fill="#686868"/>
+<circle cx="369" cy="1261" r="3.2" fill="#686868"/>
+<circle cx="329" cy="1273" r="3.2" fill="#686868"/>
+<circle cx="369" cy="1273" r="3.2" fill="#686868"/>
+<circle cx="329" cy="1285" r="3.2" fill="#686868"/>
+<circle cx="369" cy="1285" r="3.2" fill="#686868"/>
+<path d="M291 1336 C299 1317 320 1312 361 1311 C392 1310 412 1308 431 1307" fill="none" stroke="#3b5bb0" stroke-width="6.5" stroke-dasharray="0.1 7.5" stroke-linecap="round"/>
+<text class="a-sans" x="39" y="1385" font-size="49" text-anchor="start" textLength="305" lengthAdjust="spacing">scene points</text>
+<text class="a-math" x="374" y="1385" font-size="42" text-anchor="start" textLength="281" lengthAdjust="spacing">n × N × (3 + c)</text>
+<rect class="hl" x="716" y="1208" width="667" height="199" rx="18" fill="#d0ecd0"/>
+<path d="M977 1330 C984 1300 994 1268 1009 1272 C1030 1280 1040 1307 1070 1315 L1103 1317" fill="none" stroke="#2ea62e" stroke-width="6.5" stroke-dasharray="0.1 7.5" stroke-linecap="round"/>
+<text class="a-sans" x="794" y="1386" font-size="49" text-anchor="start" textLength="262" lengthAdjust="spacing">goal points</text>
+<text class="a-math" x="1087" y="1385" font-size="42" text-anchor="start" textLength="212" lengthAdjust="spacing">M × (3 + c)</text>
+</g>
+<path class="ar " d="M349.5 1203 L349.5 1150" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M338.5 1162 L349.5 1150 L360.5 1162" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path class="ar " d="M1049.5 1203 L1049.5 1150" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M1038.5 1162 L1049.5 1150 L1060.5 1162" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="enc" cx="349.5" cy="1203" r="9" style="--dx:0.0px; --dy:-53px"/><circle class="pulse" data-step="enc" cx="1049.5" cy="1203" r="9" style="--dx:0.0px; --dy:-53px"/>
+<g class="grp" data-k="enc" tabindex="0">
+<rect class="hl" x="16" y="944" width="1368" height="200" rx="18" fill="#e6e6e6"/>
+<text class="a-mono a-bold" x="50" y="996" font-size="44" text-anchor="start" textLength="474" lengthAdjust="spacing">serialize &amp; encode</text>
+<rect x="411.5" y="1015.5" width="80" height="80" fill="#fff" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M431.5 1015.5 V1095.5 M411.5 1035.5 H491.5" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M451.5 1015.5 V1095.5 M411.5 1055.5 H491.5" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M471.5 1015.5 V1095.5 M411.5 1075.5 H491.5" stroke="#c8c8c8" stroke-width="2"/>
+<path class="curve" d="M421.5 1025.5 L441.5 1025.5 L421.5 1045.5 L441.5 1045.5 L461.5 1025.5 L481.5 1025.5 L461.5 1045.5 L481.5 1045.5 L421.5 1065.5 L441.5 1065.5 L421.5 1085.5 L441.5 1085.5 L461.5 1065.5 L481.5 1065.5 L461.5 1085.5 L481.5 1085.5" fill="none" stroke="#3b5bb0" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="421.5" cy="1025.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="441.5" cy="1025.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="421.5" cy="1045.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="441.5" cy="1045.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="461.5" cy="1025.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="481.5" cy="1025.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="461.5" cy="1045.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="481.5" cy="1045.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="421.5" cy="1065.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="441.5" cy="1065.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="421.5" cy="1085.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="441.5" cy="1085.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="461.5" cy="1065.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="481.5" cy="1065.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="461.5" cy="1085.5" r="4.3" fill="#3b5bb0"/>
+<circle cx="481.5" cy="1085.5" r="4.3" fill="#3b5bb0"/>
+<rect x="515.5" y="1015.5" width="80" height="80" fill="#fff" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M535.5 1015.5 V1095.5 M515.5 1035.5 H595.5" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M555.5 1015.5 V1095.5 M515.5 1055.5 H595.5" stroke="#c8c8c8" stroke-width="2"/>
+<path d="M575.5 1015.5 V1095.5 M515.5 1075.5 H595.5" stroke="#c8c8c8" stroke-width="2"/>
+<path class="curve" d="M525.5 1025.5 L525.5 1045.5 L545.5 1045.5 L545.5 1025.5 L565.5 1025.5 L585.5 1025.5 L585.5 1045.5 L565.5 1045.5 L565.5 1065.5 L585.5 1065.5 L585.5 1085.5 L565.5 1085.5 L545.5 1085.5 L545.5 1065.5 L525.5 1065.5 L525.5 1085.5" fill="none" stroke="#b33b3b" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="525.5" cy="1025.5" r="4.3" fill="#b33b3b"/>
+<circle cx="525.5" cy="1045.5" r="4.3" fill="#b33b3b"/>
+<circle cx="545.5" cy="1045.5" r="4.3" fill="#b33b3b"/>
+<circle cx="545.5" cy="1025.5" r="4.3" fill="#b33b3b"/>
+<circle cx="565.5" cy="1025.5" r="4.3" fill="#b33b3b"/>
+<circle cx="585.5" cy="1025.5" r="4.3" fill="#b33b3b"/>
+<circle cx="585.5" cy="1045.5" r="4.3" fill="#b33b3b"/>
+<circle cx="565.5" cy="1045.5" r="4.3" fill="#b33b3b"/>
+<circle cx="565.5" cy="1065.5" r="4.3" fill="#b33b3b"/>
+<circle cx="585.5" cy="1065.5" r="4.3" fill="#b33b3b"/>
+<circle cx="585.5" cy="1085.5" r="4.3" fill="#b33b3b"/>
+<circle cx="565.5" cy="1085.5" r="4.3" fill="#b33b3b"/>
+<circle cx="545.5" cy="1085.5" r="4.3" fill="#b33b3b"/>
+<circle cx="545.5" cy="1065.5" r="4.3" fill="#b33b3b"/>
+<circle cx="525.5" cy="1065.5" r="4.3" fill="#b33b3b"/>
+<circle cx="525.5" cy="1085.5" r="4.3" fill="#b33b3b"/>
+<path d="M611 1052.5 H636 M623.5 1040 V1065" stroke="#686868" stroke-width="4"/>
+<rect x="653.5" y="1023.5" width="297" height="65" rx="14" fill="#fff" stroke="#2b2b2b" stroke-width="3.5"/>
+<text class="a-mono" x="681" y="1066" font-size="36.5" text-anchor="start" textLength="242" lengthAdjust="spacing">sparse conv</text>
+<text class="a-mono a-grey" x="395" y="1124" font-size="33" text-anchor="start" textLength="219" lengthAdjust="spacing">z / hilbert</text>
+</g>
+<path class="ar " d="M267.5 937 L267.5 892" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M256.5 904 L267.5 892 L278.5 904" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="emb" cx="267.5" cy="937" r="9" style="--dx:0.0px; --dy:-45px"/>
+<g class="grp" data-k="emb" tabindex="0">
+<rect class="tok" x="64" y="842" width="55" height="44" rx="7" fill="#c0d0e8"/>
+<rect class="tok" x="140" y="842" width="55" height="44" rx="7" fill="#c0d0e8"/>
+<rect class="tok" x="340" y="842" width="55" height="44" rx="7" fill="#88a8d8"/>
+<rect class="tok" x="416" y="842" width="55" height="44" rx="7" fill="#88a8d8"/>
+<rect class="tok" x="616" y="842" width="55" height="44" rx="7" fill="#38b838"/>
+<rect class="tok" x="692" y="842" width="55" height="44" rx="7" fill="#38b838"/>
+<circle cx="231.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="243.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="255.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="507.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="519.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="531.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="783.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="795.5" cy="864" r="3.4" fill="#686868"/>
+<circle cx="807.5" cy="864" r="3.4" fill="#686868"/>
+<path d="M814 864 H869" stroke="#686868" stroke-width="4.5"/>
+<circle class="hl" cx="883.5" cy="863.5" r="14" fill="#fff" stroke="#2b2b2b" stroke-width="3.2"/>
+<path d="M883.5 853 V874 M873 863.5 H894" stroke="#2b2b2b" stroke-width="3.2"/>
+<rect x="1072.5" y="834.5" width="26" height="30" fill="#c8d4ec" stroke="#fff" stroke-width="2"/>
+<rect x="1072.5" y="864.5" width="26" height="30" fill="#74d074" stroke="#fff" stroke-width="2"/>
+<rect x="1098.5" y="834.5" width="26" height="30" fill="#bfcde9" stroke="#fff" stroke-width="2"/>
+<rect x="1098.5" y="864.5" width="26" height="30" fill="#9cde9c" stroke="#fff" stroke-width="2"/>
+<rect x="1124.5" y="834.5" width="26" height="30" fill="#9fb3df" stroke="#fff" stroke-width="2"/>
+<rect x="1124.5" y="864.5" width="26" height="30" fill="#5cc85c" stroke="#fff" stroke-width="2"/>
+<rect x="1150.5" y="834.5" width="26" height="30" fill="#b4c4e6" stroke="#fff" stroke-width="2"/>
+<rect x="1150.5" y="864.5" width="26" height="30" fill="#9adf9a" stroke="#fff" stroke-width="2"/>
+<rect x="1176.5" y="834.5" width="26" height="30" fill="#c8d4ec" stroke="#fff" stroke-width="2"/>
+<rect x="1176.5" y="864.5" width="26" height="30" fill="#7ed37e" stroke="#fff" stroke-width="2"/>
+<rect x="1202.5" y="834.5" width="26" height="30" fill="#a9bbe3" stroke="#fff" stroke-width="2"/>
+<rect x="1202.5" y="864.5" width="26" height="30" fill="#71cf71" stroke="#fff" stroke-width="2"/>
+<rect x="1072" y="834" width="156" height="60" fill="none" stroke="#2b2b2b" stroke-width="3.5"/>
+<text class="a-math" x="1243" y="850" font-size="36" text-anchor="start">E<tspan font-size="24" dy="8" font-style="normal">scene</tspan></text>
+<text class="a-math" x="1243" y="893" font-size="36" text-anchor="start">E<tspan font-size="24" dy="8" font-style="normal">goal</tspan></text>
+<text class="a-math" x="1150.5" y="921" font-size="34" text-anchor="middle">2 × d<tspan font-size="22" dy="8" font-style="normal">emb</tspan></text>
+<text class="a-math" x="130.5" y="921" font-size="36" text-anchor="middle">+E<tspan font-size="24" dy="8" font-style="normal">1</tspan></text>
+<text class="a-math" x="406.5" y="921" font-size="36" text-anchor="middle">+E<tspan font-size="24" dy="8" font-style="normal">n</tspan></text>
+</g>
+<path class="ar " d="M1067 864 L902 864" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M914 853 L902 864 L914 875" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="emb" cx="1067" cy="864" r="9" style="--dx:-165px; --dy:0px"/>
+<path class="ar " d="M267.5 835 L267.5 782" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M256.5 794 L267.5 782 L278.5 794" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="ptv3" cx="267.5" cy="835" r="9" style="--dx:0.0px; --dy:-53px"/>
+<g class="grp" data-k="ptv3" tabindex="0">
+<rect class="hl" x="15.5" y="487.5" width="1368" height="288" rx="26" fill="url(#ag-ptv3)" stroke="#2b2b2b" stroke-width="4"/>
+<text class="a-mono a-bold" x="59" y="537" font-size="49" text-anchor="start" textLength="384" lengthAdjust="spacing">PTv3 backbone</text>
+<text class="a-mono a-grey" x="801" y="532" font-size="34" text-anchor="start" textLength="538" lengthAdjust="spacing">serialized patch attention</text>
+<path d="M135.5 581 Q699.5 522.0 1263.5 581" fill="none" stroke="#777" stroke-width="2.6" stroke-dasharray="7 6"/>
+<path d="M276.5 597 Q699.5 548.0 1122.5 597" fill="none" stroke="#777" stroke-width="2.6" stroke-dasharray="7 6"/>
+<path d="M417.5 613 Q699.5 574.0 981.5 613" fill="none" stroke="#777" stroke-width="2.6" stroke-dasharray="7 6"/>
+<path d="M558.5 629 Q699.5 600.0 840.5 629" fill="none" stroke="#777" stroke-width="2.6" stroke-dasharray="7 6"/>
+<path d="M183 691.5 H1216" stroke="#777" stroke-width="3"/>
+<rect class="ub" x="88" y="588" width="95" height="128" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:0"/>
+<rect class="ub" x="229" y="604" width="95" height="112" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:1"/>
+<rect class="ub" x="370" y="620" width="95" height="96" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:2"/>
+<rect class="ub" x="511" y="636" width="95" height="80" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:3"/>
+<rect class="ub" x="652" y="652" width="95" height="64" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:4"/>
+<rect class="ub" x="793" y="636" width="95" height="80" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:5"/>
+<rect class="ub" x="934" y="620" width="95" height="96" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:6"/>
+<rect class="ub" x="1075" y="604" width="95" height="112" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:7"/>
+<rect class="ub" x="1216" y="588" width="95" height="128" rx="8" fill="#fff" stroke="#2b2b2b" stroke-width="2.6" style="--i:8"/>
+<text class="a-mono a-grey" x="264" y="755" font-size="34" text-anchor="start" textLength="306" lengthAdjust="spacing">encoder  (pool)</text>
+<text class="a-mono a-grey" x="877" y="755" font-size="34" text-anchor="start" textLength="348" lengthAdjust="spacing">decoder  (unpool)</text>
+<rect x="574" y="369" width="59" height="47" rx="7" fill="none" stroke="#8fa8d8" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="650" y="369" width="59" height="47" rx="7" fill="none" stroke="#8fa8d8" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="1126" y="369" width="59" height="47" rx="7" fill="none" stroke="#3dbd3d" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="1202" y="369" width="59" height="47" rx="7" fill="none" stroke="#3dbd3d" stroke-width="3" stroke-dasharray="8 6"/>
+<rect class="tok" x="852" y="370" width="55" height="44" rx="7" fill="url(#ag-tok)"/>
+<rect class="tok" x="928" y="370" width="55" height="44" rx="7" fill="url(#ag-tok)"/>
+<circle cx="743.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="755.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="767.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1019.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1031.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1043.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1295.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1307.5" cy="392" r="3.4" fill="#686868"/>
+<circle cx="1319.5" cy="392" r="3.4" fill="#686868"/>
+<text class="a-math" x="943" y="455" font-size="40" text-anchor="middle">N × d<tspan font-size="26" dy="8" font-style="normal">feat</tspan></text>
+<text class="a-math" x="1230" y="455" font-size="40" text-anchor="middle">M × d<tspan font-size="26" dy="8" font-style="normal">feat</tspan></text>
+</g>
+<path class="ar " d="M779.5 481 L779.5 424" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M768.5 436 L779.5 424 L790.5 436" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="mlp" cx="779.5" cy="481" r="9" style="--dx:0.0px; --dy:-57px"/>
+<path class="ar " d="M955.5 363 L955.5 316" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M944.5 328 L955.5 316 L966.5 328" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="mlp" cx="955.5" cy="363" r="9" style="--dx:0.0px; --dy:-47px"/>
+<g class="grp" data-k="mlp" tabindex="0">
+<path class="hl" d="M884 259.5 H1027 L1073 308.5 H838 Z" fill="#f5e3b3" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+<text class="a-mono a-bold" x="955.5" y="297" font-size="46" text-anchor="middle">MLP</text>
+</g>
+<path class="ar " d="M955.5 253 L955.5 218" stroke="#686868" stroke-width="4.5" stroke-linecap="round" fill="none"/><path class="ar " d="M944.5 230 L955.5 218 L966.5 230" stroke="#686868" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<circle class="pulse" data-step="out" cx="955.5" cy="253" r="9" style="--dx:0.0px; --dy:-35px"/>
+<g class="grp" data-k="out" tabindex="0">
+<rect class="hl" x="16" y="0" width="1368" height="212" rx="18" fill="#e8ecf6"/>
+<text class="a-sans" x="58" y="88" font-size="50" text-anchor="start" textLength="258" lengthAdjust="spacing">scene flow</text>
+<text class="a-math" x="59" y="157" font-size="42" text-anchor="start" textLength="178" lengthAdjust="spacing">N × T × 3</text>
+<g class="sflow"><circle cx="1126.5" cy="57.0" r="4.2" fill="#c4c4c4"/><circle cx="1137.0" cy="57.0" r="4.2" fill="#c4c4c4"/><circle cx="1147.5" cy="57.0" r="4.2" fill="#c4c4c4"/><circle cx="1158.0" cy="57.0" r="4.2" fill="#c4c4c4"/><circle cx="1168.5" cy="57.0" r="4.2" fill="#c4c4c4"/><circle cx="1126.5" cy="68.0" r="4.2" fill="#c4c4c4"/><circle cx="1126.5" cy="78.0" r="4.2" fill="#c4c4c4"/><circle cx="1126.5" cy="89.0" r="4.2" fill="#c4c4c4"/><circle cx="1168.5" cy="68.0" r="4.2" fill="#c4c4c4"/><circle cx="1168.5" cy="78.0" r="4.2" fill="#c4c4c4"/><circle cx="1168.5" cy="89.0" r="4.2" fill="#c4c4c4"/><circle cx="1147.5" cy="47.0" r="4.2" fill="#c4c4c4"/><circle cx="1147.5" cy="37.0" r="4.2" fill="#c4c4c4"/><circle cx="1016.2" cy="196.2" r="4.2" fill="#c9d5ef"/><circle cx="1026.2" cy="188.1" r="4.2" fill="#c9d5ef"/><circle cx="1033.6" cy="177.5" r="4.2" fill="#c9d5ef"/><circle cx="1043.6" cy="169.6" r="4.2" fill="#c9d5ef"/><circle cx="1054.9" cy="163.2" r="4.2" fill="#c9d5ef"/><circle cx="1067.0" cy="158.6" r="4.2" fill="#c9d5ef"/><circle cx="1079.6" cy="155.7" r="4.2" fill="#c9d5ef"/><circle cx="1092.4" cy="153.6" r="4.2" fill="#c9d5ef"/><circle cx="1105.3" cy="152.3" r="4.2" fill="#c9d5ef"/><circle cx="1118.2" cy="152.1" r="4.2" fill="#c9d5ef"/><circle cx="1131.1" cy="151.6" r="4.2" fill="#c9d5ef"/><circle cx="1144.1" cy="151.2" r="4.2" fill="#c9d5ef"/><circle cx="1157.0" cy="151.3" r="4.2" fill="#c9d5ef"/><circle cx="1170.0" cy="151.2" r="4.2" fill="#c9d5ef"/><circle cx="1182.9" cy="150.3" r="4.2" fill="#c9d5ef"/><circle cx="1195.8" cy="149.5" r="4.2" fill="#c9d5ef"/><circle cx="1208.8" cy="149.3" r="4.2" fill="#c9d5ef"/><circle cx="1221.7" cy="148.1" r="4.2" fill="#c9d5ef"/><circle cx="1234.5" cy="146.7" r="4.2" fill="#c9d5ef"/><circle cx="1247.4" cy="145.7" r="4.2" fill="#c9d5ef"/><circle cx="1260.3" cy="144.6" r="4.2" fill="#c9d5ef"/><circle cx="1273.1" cy="142.8" r="4.2" fill="#c9d5ef"/><circle cx="1286.0" cy="141.3" r="4.2" fill="#c9d5ef"/><circle cx="1298.9" cy="139.7" r="4.2" fill="#c9d5ef"/><circle cx="1311.6" cy="137.6" r="4.2" fill="#c9d5ef"/><circle cx="1324.5" cy="136.2" r="4.2" fill="#c9d5ef"/><g><animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.05;0.72;0.93;1" dur="4.2s" repeatCount="indefinite"/><path d="M1016.2 196.2 C1011.2 185.2 999.7 176.6 983.2 176.2" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1033.6 177.5 C1027.2 161.5 1012.1 149.0 990.6 148.4" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1054.9 163.2 C1046.2 139.7 1026.0 121.3 997.1 120.4" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1079.6 155.7 C1069.3 122.6 1045.4 96.6 1011.2 95.4" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1105.3 152.3 C1094.8 113.3 1070.4 82.8 1035.5 81.4" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1131.1 151.6 C1120.8 117.4 1096.6 90.7 1062.1 89.5" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1157.0 151.3 C1146.1 127.4 1120.7 108.7 1084.3 107.8" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1182.9 150.3 C1171.6 136.5 1145.2 125.7 1107.4 125.2" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1208.8 149.3 C1197.4 143.4 1170.9 138.8 1133.0 138.6" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1234.5 146.7 C1223.4 146.4 1197.6 146.2 1160.8 146.2" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1260.3 144.6 C1249.7 147.0 1224.9 148.8 1189.5 148.9" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1286.0 141.3 C1275.9 145.1 1252.2 148.1 1218.4 148.2" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1311.6 137.6 C1302.0 144.0 1279.4 149.0 1247.2 149.2" pathLength="1" fill="none" stroke="#5f7cc8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-opacity="0.75"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1147.5 57.0 C1121.5 33.0 1097.0 51.0 1095.0 113.0" pathLength="1" fill="none" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1095.0 113.0 C1089.0 67.0 1060.0 65.0 1030.0 43.0" pathLength="1" fill="none" stroke="#777777" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1126.5 89.0 C1100.5 65.0 1076.0 83.0 1074.0 145.0" pathLength="1" fill="none" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1074.0 145.0 C1068.0 99.0 1039.0 97.0 1009.0 75.0" pathLength="1" fill="none" stroke="#777777" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1168.5 89.0 C1142.5 65.0 1118.0 83.0 1116.0 145.0" pathLength="1" fill="none" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1116.0 145.0 C1110.0 99.0 1081.0 97.0 1051.0 75.0" pathLength="1" fill="none" stroke="#777777" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1147.5 37.0 C1121.5 13.0 1097.0 31.0 1095.0 93.0" pathLength="1" fill="none" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;0;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><path d="M1095.0 93.0 C1089.0 47.0 1060.0 45.0 1030.0 23.0" pathLength="1" fill="none" stroke="#777777" stroke-width="3" stroke-linecap="round" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;1;1;0;0" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></path><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1016.2 196.2 C1011.2 185.2 999.7 176.6 983.2 176.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1026.2 188.1 C1020.5 174.1 1007.0 163.1 987.9 162.6" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1033.6 177.5 C1027.2 161.5 1012.1 149.0 990.6 148.4" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1043.6 169.6 C1036.0 150.1 1018.2 134.9 992.7 134.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1054.9 163.2 C1046.2 139.7 1026.0 121.3 997.1 120.4" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1067.0 158.6 C1057.4 130.4 1035.0 108.3 1003.1 107.3" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1079.6 155.7 C1069.3 122.6 1045.4 96.6 1011.2 95.4" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1092.4 153.6 C1081.8 116.6 1057.2 87.6 1022.1 86.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1105.3 152.3 C1094.8 113.3 1070.4 82.8 1035.5 81.4" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1118.2 152.1 C1107.9 114.0 1083.8 84.2 1049.4 82.8" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1131.1 151.6 C1120.8 117.4 1096.6 90.7 1062.1 89.5" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1144.1 151.2 C1133.4 122.3 1108.6 99.7 1073.2 98.6" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1157.0 151.3 C1146.1 127.4 1120.7 108.7 1084.3 107.8" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1170.0 151.2 C1158.8 132.3 1132.8 117.5 1095.7 116.8" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1182.9 150.3 C1171.6 136.5 1145.2 125.7 1107.4 125.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1195.8 149.5 C1184.4 140.0 1157.9 132.6 1120.0 132.3" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1208.8 149.3 C1197.4 143.4 1170.9 138.8 1133.0 138.6" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1221.7 148.1 C1210.4 145.3 1184.2 143.2 1146.7 143.1" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1234.5 146.7 C1223.4 146.4 1197.6 146.2 1160.8 146.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1247.4 145.7 C1236.6 146.9 1211.3 147.8 1175.1 147.8" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1260.3 144.6 C1249.7 147.0 1224.9 148.8 1189.5 148.9" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1273.1 142.8 C1262.8 145.9 1238.5 148.3 1203.9 148.4" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1286.0 141.3 C1275.9 145.1 1252.2 148.1 1218.4 148.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1298.9 139.7 C1288.9 144.9 1265.8 148.9 1232.8 149.1" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1311.6 137.6 C1302.0 144.0 1279.4 149.0 1247.2 149.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#3b5bb0"><animateMotion path="M1324.5 136.2 C1315.0 144.4 1293.0 150.9 1261.5 151.2" keyPoints="0;0;0;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1126.5 57.0 C1100.5 33.0 1076.0 51.0 1074.0 113.0 C1068.0 67.0 1039.0 65.0 1009.0 43.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1137.0 57.0 C1111.0 33.0 1086.5 51.0 1084.5 113.0 C1078.5 67.0 1049.5 65.0 1019.5 43.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1147.5 57.0 C1121.5 33.0 1097.0 51.0 1095.0 113.0 C1089.0 67.0 1060.0 65.0 1030.0 43.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1158.0 57.0 C1132.0 33.0 1107.5 51.0 1105.5 113.0 C1099.5 67.0 1070.5 65.0 1040.5 43.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1168.5 57.0 C1142.5 33.0 1118.0 51.0 1116.0 113.0 C1110.0 67.0 1081.0 65.0 1051.0 43.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1126.5 68.0 C1100.5 44.0 1076.0 62.0 1074.0 124.0 C1068.0 78.0 1039.0 76.0 1009.0 54.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1126.5 78.0 C1100.5 54.0 1076.0 72.0 1074.0 134.0 C1068.0 88.0 1039.0 86.0 1009.0 64.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1126.5 89.0 C1100.5 65.0 1076.0 83.0 1074.0 145.0 C1068.0 99.0 1039.0 97.0 1009.0 75.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1168.5 68.0 C1142.5 44.0 1118.0 62.0 1116.0 124.0 C1110.0 78.0 1081.0 76.0 1051.0 54.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1168.5 78.0 C1142.5 54.0 1118.0 72.0 1116.0 134.0 C1110.0 88.0 1081.0 86.0 1051.0 64.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1168.5 89.0 C1142.5 65.0 1118.0 83.0 1116.0 145.0 C1110.0 99.0 1081.0 97.0 1051.0 75.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1147.5 47.0 C1121.5 23.0 1097.0 41.0 1095.0 103.0 C1089.0 57.0 1060.0 55.0 1030.0 33.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle><circle r="4.4" fill="#5f5f5f"><animateMotion path="M1147.5 37.0 C1121.5 13.0 1097.0 31.0 1095.0 93.0 C1089.0 47.0 1060.0 45.0 1030.0 23.0" keyPoints="0;0;0.5082;1;1" keyTimes="0;0.1;0.4;0.72;1" calcMode="spline" keySplines="0 0 1 1;0.42 0 0.58 1;0.42 0 0.58 1;0 0 1 1" dur="4.2s" repeatCount="indefinite"/></circle></g></g>
+</g>
+</svg>
+        </div>
+        <div class="fl-side">
+          <div class="fl-pair">
+            <div class="st" data-k="out" tabindex="0">
+              <p class="st-h">output: scene flow</p>
+              <div class="st-media">
+                <img src="./static/img/arch/out_both.jpg" alt="predicted points and flow lines of the robot and the rope" width="720" height="720" loading="lazy">
+              </div>
+            </div>
+            <div class="st" data-k="ik" tabindex="0">
+              <p class="st-h">robot actions</p>
+              <div class="st-media"><img src="./static/img/arch/outcome.jpg" alt="the executed rollout reaches the goal" width="720" height="720" loading="lazy"><span class="chip pred">goal reached</span></div>
+              <div class="st-tags"><span class="tag ik">inverse kinematics</span></div>
+            </div>
+          </div>
+          <div class="fl-pair bottom">
+            <div class="st" data-k="in" tabindex="0">
+              <p class="st-h">input</p>
+              <div class="st-media white wide"><img src="./static/img/arch/input.jpg" alt="scene points with the robot gripper and rope, and the goal point cloud in green" width="900" height="675" loading="lazy"></div>
+            </div>
+            <div class="fl-info" aria-live="polite"><b class="fi-t"></b><span class="fi-d"></span></div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+    </div>
+    <div class="blk side">
+      <div class="txt"><h3>Joint robot-scene flows</h3><p>The goal-conditioned 3D flows of the full scene together improve goal-reaching performance and the learned representation.</p></div>
+      <div class="fig fig-panel">
+        <div class="hero-cmp">
+          <div class="hc-main">
+            <div class="t pred ours-frame"><video class="clip" src="./static/videos/approach/defflow.mp4" muted loop playsinline preload="none"></video><span class="chip pred">goal reached</span></div>
+            <div class="names"><span class="ours">predict joint robot-deformable scene flows</span></div>
+            <p class="grp ours">DefFlow (Ours)</p>
+          </div>
+          <div class="hc-side">
+            <div>
+              <div class="t pred"><video class="clip" src="./static/videos/approach/robot_state.mp4" muted loop playsinline preload="none"></video><span class="chip fail">wrong final shape</span></div>
+              <div class="names"><span>predict robot state</span></div>
+            </div>
+            <div>
+              <div class="t pred"><video class="clip" src="./static/videos/approach/rigid_flow.mp4" muted loop playsinline preload="none"></video><span class="chip fail">missed grasp</span></div>
+              <div class="names"><span>predict only rigid robot flow</span></div>
+            </div>
+            <p class="grp">Existing paradigms</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="results">
+    <h2>Results</h2>
+    <div class="blk stack">
+      <div class="txt"><h3>Generalizing to new start&ndash;goal combinations</h3><p>The same goal from different initial configurations, or the same start with a goal from a separate demo.</p></div>
+      <div class="fig fig-panel">
+        <div class="split-11">
+          <div>
+            <div class="tiles c2">
+              <div class="t pred"><video class="clip" src="./static/videos/generalize/start1.mp4" muted loop playsinline preload="none"></video><span class="chip ">start 1</span></div>
+              <div class="t pred"><video class="clip" src="./static/videos/generalize/start2.mp4" muted loop playsinline preload="none"></video><span class="chip ">start 2</span></div>
+            </div>
+            <p class="grp">Same goal, different start</p>
+          </div>
+          <div class="vrule"></div>
+          <div>
+            <div class="tiles c2">
+              <div class="t pred"><video class="clip" src="./static/videos/generalize/goal1.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 1</span></div>
+              <div class="t pred"><video class="clip" src="./static/videos/generalize/goal2.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 2</span></div>
+            </div>
+            <p class="grp">Same start, different goal</p>
+          </div>
+        </div
+      </div>
+    </div>
+    <div class="blk stack">
+      <div class="txt"><h3>Precise grasping and swishing behaviors</h3><p>The robot needs to grasp the rope, lift and swish back in a precise manner to reach the exact shape.</p></div>
+      <div class="fig fig-panel">
+        <div class="split-13">
+          <div>
+            <div class="t pred ours-frame"><video class="clip" src="./static/videos/rope_cmp/defflow.mp4" muted loop playsinline preload="none"></video></div>
+            <div class="names"><span class="ours">DefFlow (Ours)</span></div>
+          </div>
+          <div class="vrule"></div>
+          <div>
+            <div class="tiles c3">
+              <div class="t pred"><video class="clip" src="./static/videos/rope_cmp/gcdp3.mp4" muted loop playsinline preload="none"></video><span class="chip fail">suboptimal swish</span></div>
+              <div class="t pred"><video class="clip" src="./static/videos/rope_cmp/robotflow.mp4" muted loop playsinline preload="none"></video><span class="chip fail">missed grasp</span></div>
+              <div class="t pred"><video class="clip" src="./static/videos/rope_cmp/rigidflow.mp4" muted loop playsinline preload="none"></video><span class="chip fail">collision</span></div>
+            </div>
+            <div class="names c3"><span>GC-DP3</span><span>Robot-Flow</span><span>Rigid Robot-Flow</span></div>
+          </div>
+        </div>
+        <div class="plots">
+          <div class="plot">
+            <p class="ptitle">L2 Error (cm) &darr;</p><p class="punit">[cm; label = median; dashed = initial]</p>
+            <div class="pframe box-frame">
+              <i class="band" style="left:13.74%; width:37.71%"></i><i class="imed" style="left:30.63%"></i>
+              <div class="brow ours" style="--f:#9FAEFD; --e:#4F5BB5"><i class="wh" style="width:9.84%"></i><i class="bx" style="left:1.51%; width:3.52%"></i><i class="md" style="left:3.07%"></i><i class="cp" style="left:9.84%"></i><span class="lab" style="left:9.84%">2.1&nbsp;&nbsp;DefFlow (Ours)</span></div><div class="brow" style="--f:#7FD18F; --e:#3F8F4E"><i class="wh" style="width:75.76%"></i><i class="bx" style="left:4.27%; width:31.44%"></i><i class="md" style="left:9.71%"></i><i class="cp" style="left:75.76%"></i><span class="lab" style="left:75.76%">6.5&nbsp;&nbsp;Robot-Flow</span></div><div class="brow" style="--f:#F6C98E; --e:#C57E2A"><i class="wh" style="width:58.65%"></i><i class="bx" style="left:3.87%; width:22.40%"></i><i class="md" style="left:7.16%"></i><i class="cp" style="left:58.65%"></i><span class="lab" style="left:58.65%">4.8&nbsp;&nbsp;Rigid Robot-Flow</span></div><div class="brow" style="--f:#F8B8B7; --e:#B83A59"><i class="wh" style="width:67.58%"></i><i class="bx" style="left:6.01%; width:24.81%"></i><i class="md" style="left:14.31%"></i><i class="cp" style="left:67.58%"></i><span class="lab" style="left:67.58%">9.6&nbsp;&nbsp;GC-DP3</span></div><div class="brow" style="--f:#D8D8D8; --e:#7A7A7A"><i class="wh" style="width:38.21%"></i><i class="bx" style="left:4.44%; width:13.86%"></i><i class="md" style="left:9.56%"></i><i class="cp" style="left:38.21%"></i><span class="lab" style="left:38.21%">6.4&nbsp;&nbsp;GC-DP3 PTv3</span></div>
+            </div>
+            <div class="xticks"><span style="left:0.00%">0</span><span style="left:14.98%">10</span><span style="left:29.97%">20</span><span style="left:44.95%">30</span><span style="left:59.93%">40</span><span style="left:74.92%">50</span><span style="left:89.90%">60</span></div>
+          </div>
+          <div class="plot">
+            <p class="ptitle">Success Rate (%) &uarr;</p><p class="punit">[L2 &lt; 3 cm]</p>
+            <div class="vplot"><div class="yticks"><span style="bottom:0%">0%</span><span style="bottom:25%">25%</span><span style="bottom:50%">50%</span><span style="bottom:75%">75%</span><span style="bottom:100%">100%</span></div><div class="pframe bar-frame"><div class="vb ours" style="--f:#9FAEFD; --e:#4F5BB5"><span class="val">70.9</span><i style="height:70.9%"></i></div><div class="vb" style="--f:#7FD18F; --e:#3F8F4E"><span class="val">27.3</span><i style="height:27.3%"></i></div><div class="vb" style="--f:#F6C98E; --e:#C57E2A"><span class="val">30.0</span><i style="height:30.0%"></i></div><div class="vb" style="--f:#F8B8B7; --e:#B83A59"><span class="val">24.2</span><i style="height:24.2%"></i></div><div class="vb" style="--f:#D8D8D8; --e:#7A7A7A"><span class="val">26.1</span><i style="height:26.1%"></i></div></div></div>
+            <div class="xnames"><span class="ours">DefFlow<br>(Ours)</span><span class="">Robot-Flow</span><span class="">Rigid<br>Robot-Flow</span><span class="">GC-DP3</span><span class="">GC-DP3<br>PTv3</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="blk stack">
+      <div class="txt"><h3>Shaping diverse granular designs</h3><p>Each goal shape is its own unique design, requiring different sweeps in different orders and numbers.</p></div>
+      <div class="fig fig-panel">
+        <div class="gran">
+          <span class="gh">Goal</span><span class="gh ours">DefFlow (Ours)</span><span class="gh">GC-DP3</span><span class="gh">GC-PointBERT</span><span class="gh">Robot-Flow</span><span class="gh">Rigid Robot-Flow</span>
+          <div class="t goal"><img src="./static/videos/gran_cmp/pi_goal.jpg" alt="goal shape" width="480" height="480" loading="lazy"></div>
+          <div class="t pred ours-frame"><video class="clip" src="./static/videos/gran_cmp/pi_ours.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/pi_gcdp3.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/pi_sculptdiff.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/pi_robotflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/pi_rigidflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t goal"><img src="./static/videos/gran_cmp/five_goal.jpg" alt="goal shape" width="480" height="480" loading="lazy"></div>
+          <div class="t pred ours-frame"><video class="clip" src="./static/videos/gran_cmp/five_ours.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/five_gcdp3.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/five_sculptdiff.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/five_robotflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/five_rigidflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t goal"><img src="./static/videos/gran_cmp/L_goal.jpg" alt="goal shape" width="480" height="480" loading="lazy"></div>
+          <div class="t pred ours-frame"><video class="clip" src="./static/videos/gran_cmp/L_ours.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/L_gcdp3.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/L_sculptdiff.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/L_robotflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/L_rigidflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t goal"><img src="./static/videos/gran_cmp/R_goal.jpg" alt="goal shape" width="480" height="480" loading="lazy"></div>
+          <div class="t pred ours-frame"><video class="clip" src="./static/videos/gran_cmp/R_ours.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/R_gcdp3.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/R_sculptdiff.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/R_robotflow.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t pred"><video class="clip" src="./static/videos/gran_cmp/R_rigidflow.mp4" muted loop playsinline preload="none"></video></div>
+        </div>
+      </div>
+    </div>
+    <div class="blk stack">
+      <div class="txt"><h3>Precise cloth draping</h3><p>Some goals need a middle grasp and a simple drape, others a corner grasp, a slight swish and a drape.</p></div>
+      <div class="fig fig-panel">
+        <div class="split-14">
+          <div>
+            <div class="t goal"><img src="./static/videos/cloth_cmp/goal.jpg" alt="goal configuration" width="480" height="480" loading="lazy"></div>
+            <div class="names"><span>Goal</span></div>
+          </div>
+          <div class="vrule"></div>
+          <div>
+            <div class="tiles c4">
+              <div class="t pred ours-frame"><video class="clip" src="./static/videos/cloth_cmp/defflow.mp4" muted loop playsinline preload="none"></video></div>
+              <div class="t pred"><video class="clip" src="./static/videos/cloth_cmp/gcdp3.mp4" muted loop playsinline preload="none"></video></div>
+              <div class="t pred"><video class="clip" src="./static/videos/cloth_cmp/graspservo.mp4" muted loop playsinline preload="none"></video></div>
+              <div class="t pred"><video class="clip" src="./static/videos/cloth_cmp/robotflow.mp4" muted loop playsinline preload="none"></video></div>
+            </div>
+            <div class="names c4"><span class="ours">DefFlow (Ours)</span><span>GC-DP3</span><span>Grasp-Servo</span><span>Robot-Flow</span></div>
+          </div>
+        </div
+      </div>
+    </div>
+  </section>
+
+  <!--
+  <section class="block wrap" id="diversity">
+    <h2>Effect of configuration diversity</h2>
+    <p class="lead">In a toy cube-stacking task, the start and stack positions are randomized more and more. All methods
+      do well with dense demonstrations, but as the configurations spread out, DefFlow degrades much more gracefully.</p>
+    <div class="fig fig-panel">
+      <div class="cube">
+        <div class="cube-side">
+          <div class="setup-card"><img src="./static/img/cube_setup.png" alt="robot, three cubes and the stack location" width="255" height="260" loading="lazy"></div>
+          <p class="ptitle">Success Rate (%) &uarr;</p><p class="punit">[stack completed]</p>
+          <div class="key">
+            <span class="ours"><i style="--f:#9FAEFD; --e:#4F5BB5"></i>DefFlow (Ours)</span>
+            <span><i style="--f:#D8D8D8; --e:#7A7A7A"></i>Robot-Flow</span>
+            <span><i style="--f:#F8B8B7; --e:#B83A59"></i>GC-DP3</span>
+          </div>
+          <div class="key cubes">
+            <span><i style="--f:#F8B8B7; --e:#B83A59"></i>cube 0</span><span><i style="--f:#7FD18F; --e:#3F8F4E"></i>cube 1</span>
+            <span><i style="--f:#B8A6E6; --e:#6A55B0"></i>cube 2</span><span><i style="--f:#F6D98E; --e:#C9971F"></i>stack location</span>
+          </div>
+        </div>
+        <div class="cube-col">
+              <div class="topdown"><img src="./static/img/cube_small.png" alt="top-down view of the small setting" width="217" height="218" loading="lazy"></div>
+              <div class="cube-plot"><div class="yticks"><span style=bottom:0%>0</span><span style=bottom:25%>25</span><span style=bottom:50%>50</span><span style=bottom:75%>75</span><span style=bottom:100%>100</span></div><div class="pframe cube-frame"><i style="height:90.6%; --f:#9FAEFD; --e:#4F5BB5"></i><i style="height:88.6%; --f:#D8D8D8; --e:#7A7A7A"></i><i style="height:94.1%; --f:#F8B8B7; --e:#B83A59"></i></div></div>
+              <p class="setting">Small<br>perturbation</p>
+            </div><div class="cube-col">
+              <div class="topdown"><img src="./static/img/cube_large.png" alt="top-down view of the large setting" width="217" height="218" loading="lazy"></div>
+              <div class="cube-plot"><div class="pframe cube-frame"><i style="height:71.3%; --f:#9FAEFD; --e:#4F5BB5"></i><i style="height:59.4%; --f:#D8D8D8; --e:#7A7A7A"></i><i style="height:30.7%; --f:#F8B8B7; --e:#B83A59"></i></div></div>
+              <p class="setting">Large<br>perturbation</p>
+            </div><div class="cube-col">
+              <div class="topdown"><img src="./static/img/cube_random.png" alt="top-down view of the random setting" width="217" height="218" loading="lazy"></div>
+              <div class="cube-plot"><div class="pframe cube-frame"><i style="height:76.8%; --f:#9FAEFD; --e:#4F5BB5"></i><i style="height:38.2%; --f:#D8D8D8; --e:#7A7A7A"></i><i style="height:17.3%; --f:#F8B8B7; --e:#B83A59"></i></div></div>
+              <p class="setting">Random</p>
+            </div>
+      </div>
+      <p class="fig-caption under">Top: top-down view of each setting (cube and stack positions over the
+        demonstrations). Bottom: success rate.</p>
+    </div>
+  </section>
+  -->
+
+  <section class="block wrap" id="real">
+    <h2>Real robot</h2><p class="sec-lead">We demonstrate deployment on a real robot using real point-cloud observations and unseen goal configurations, with open-loop rollouts of the checkpoints trained in simulation.</p>
+    <div class="blk stack">
+      <div class="txt"><h3>Rope: hang a rope on the stand</h3><p><b>The pretrained general goal-conditioned policy is used for a specific new task</b>, simply by specifying the desired final rope configuration as the goal. Without any task-specific fine-tuning, we run the same policy across multiple initial rope configurations and two goals.</p></div>
+      <div class="fig fig-panel">
+        <div class="tiles c3">
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_2729.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 1</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_3630.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 1</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_2732.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 2</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_3631.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 1</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_3632.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 1</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/rope_2736.mp4" muted loop playsinline preload="none"></video><span class="chip ">goal 2</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="blk side real">
+      <div class="txt"><h3>Granular: letter shapes</h3><p><b>We shape the pile into letter shapes</b> (L, C, and S).</p></div>
+      <div class="fig fig-panel">
+        <div class="tiles feat">
+          <div class="t wide"><video class="clip" src="./static/videos/real/gran_L.mp4" muted loop playsinline preload="none"></video><span class="chip ">L</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/gran_C.mp4" muted loop playsinline preload="none"></video><span class="chip ">C</span></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/gran_S.mp4" muted loop playsinline preload="none"></video><span class="chip ">S</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="blk side flip real">
+      <div class="txt"><h3>Cloth: drape goals</h3><p><b>Goal configurations</b> requiring a specific section of cloth to be draped over the object.</p></div>
+      <div class="fig fig-panel">
+        <div class="tiles feat">
+          <div class="t wide"><video class="clip" src="./static/videos/real/cloth_2752.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/cloth_2751.mp4" muted loop playsinline preload="none"></video></div>
+          <div class="t wide"><video class="clip" src="./static/videos/real/cloth_2760.mp4" muted loop playsinline preload="none"></video></div>
+        </div>
+      </div>
     </div>
   </section>
 </main>
