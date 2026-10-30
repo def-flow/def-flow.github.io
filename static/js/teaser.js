@@ -110,3 +110,6 @@ stage.addEventListener("pointerup", end);
 stage.addEventListener("pointercancel", end);
 
 loadTask(taskBtns.find((b) => b.getAttribute("aria-pressed") === "true") || taskBtns[0]);
+const fill = (s) => s.style.setProperty("--p", (100 * (s.value - s.min) / ((s.max - s.min) || 1)) + "%");
+[azSlider, timeSlider].forEach((s) => { fill(s); s.addEventListener("input", () => fill(s)); });
+(function track() { fill(timeSlider); fill(azSlider); requestAnimationFrame(track); })();
